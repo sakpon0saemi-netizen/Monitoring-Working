@@ -1,526 +1,169 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta charset="utf-8">
+<title>Team Board</title>
 
-  <title>Team Board</title>
-  <meta name="description" content="Team Board — shared daily, monthly and yearly tasks, leave and site rotations">
-  <meta name="theme-color" content="#0f766e">
-  <meta name="color-scheme" content="light">
+<!-- zoom allowed (no user-scalable=no) / viewport-fit=cover uses the full screen on notched iPhones -->
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 
-  <!-- App icons -->
-  <link rel="icon" type="image/png" href="wl2-icon.png">
-  <link rel="apple-touch-icon" href="wl2-icon.png">
-  <link rel="manifest" href="manifest.webmanifest">
+<!-- iOS -->
+<link rel="apple-touch-icon" href="teamboard-icon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="teamboard-icon.png">
+<link rel="apple-touch-icon" sizes="167x167" href="teamboard-icon.png">
+<link rel="apple-touch-icon" sizes="152x152" href="teamboard-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Team Board">
+<meta name="description" content="Team Board — shared daily, monthly and yearly tasks, leave and site rotations">
 
-  <!-- Mobile app support -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="Team Board">
+<!-- Android / Chrome -->
+<link rel="icon" type="image/png" href="teamboard-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0f766e">
+<meta name="color-scheme" content="light">
 
-  <style>
-    :root {
-      --a: #0f766e;
-      --b: #059669;
-      --c: #65a30d;
-      --t: #fde68a;
-    }
+<style>
+  :root{--a:#0f766e;--b:#059669;--c:#65a30d;--t:#fde68a}
+  html,body{margin:0;padding:0;height:100%;background:#0f766e;overflow:hidden;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans Thai",sans-serif}
+  #frame{position:fixed;top:0;left:0;width:100%;height:100%;height:100dvh;border:0;display:block;background:#f1f8f6}
 
-    * {
-      box-sizing: border-box;
-    }
+  /* ---------- splash ---------- */
+  #splash{position:fixed;inset:0;z-index:9;display:flex;flex-direction:column;align-items:center;
+    justify-content:center;gap:22px;color:#fff;overflow:hidden;
+    background:linear-gradient(135deg,#134e4a 0%,var(--a) 38%,var(--b) 70%,var(--c) 120%);
+    transition:opacity .55s ease,visibility .55s}
+  #splash.gone{opacity:0;visibility:hidden;pointer-events:none}
+  #splash::before,#splash::after{content:"";position:absolute;border-radius:50%;pointer-events:none;
+    filter:blur(2px);animation:drift 14s ease-in-out infinite alternate}
+  #splash::before{width:520px;height:520px;right:-160px;top:-200px;
+    background:radial-gradient(closest-side,rgba(251,191,36,.55),transparent 70%)}
+  #splash::after{width:460px;height:460px;left:-140px;bottom:-220px;animation-duration:19s;animation-direction:alternate-reverse;
+    background:radial-gradient(closest-side,rgba(251,113,133,.42),transparent 70%)}
+  @keyframes drift{from{transform:translate3d(0,0,0) scale(1)}to{transform:translate3d(-40px,34px,0) scale(1.15)}}
+  .badge{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:6px}
+  .mark{font-size:52px;font-weight:800;letter-spacing:-.05em;line-height:1;
+    background:linear-gradient(92deg,#fff,var(--t));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .tag{font-size:13px;font-weight:600;letter-spacing:.02em;opacity:.85}
+  .pills{position:relative;z-index:1;display:flex;gap:8px;flex-wrap:wrap;justify-content:center;padding:0 24px}
+  .pills span{font-size:11.5px;font-weight:700;padding:5px 12px;border-radius:99px;
+    background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.22);
+    opacity:0;transform:translateY(8px);animation:pop .6s ease forwards}
+  .pills span:nth-child(2){animation-delay:.12s}.pills span:nth-child(3){animation-delay:.24s}
+  .pills span:nth-child(4){animation-delay:.36s}
+  @keyframes pop{to{opacity:1;transform:none}}
+  .loadbar{position:relative;z-index:1;width:168px;height:4px;border-radius:4px;background:rgba(255,255,255,.22);overflow:hidden}
+  .loadbar i{position:absolute;inset:0 auto 0 0;width:40%;border-radius:4px;
+    background:linear-gradient(90deg,transparent,var(--t),transparent);animation:slide 1.3s ease-in-out infinite}
+  @keyframes slide{from{transform:translateX(-110%)}to{transform:translateX(300%)}}
+  .sub{position:relative;z-index:1;font-size:12.5px;opacity:.8;font-weight:500;min-height:18px;text-align:center;padding:0 24px}
 
-    html,
-    body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      background: var(--a);
-      font-family:
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        Roboto,
-        "Noto Sans Thai",
-        sans-serif;
-    }
-
-    #frame {
-      position: fixed;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      height: 100dvh;
-      border: 0;
-      display: block;
-      background: #f1f8f6;
-    }
-
-    /* Loading screen */
-    #splash {
-      position: fixed;
-      inset: 0;
-      z-index: 9;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 22px;
-      color: #fff;
-      overflow: hidden;
-      background: linear-gradient(
-        135deg,
-        #134e4a 0%,
-        var(--a) 38%,
-        var(--b) 70%,
-        var(--c) 120%
-      );
-      transition: opacity 0.55s ease, visibility 0.55s ease;
-    }
-
-    #splash.gone {
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
-    }
-
-    #splash::before,
-    #splash::after {
-      content: "";
-      position: absolute;
-      border-radius: 50%;
-      pointer-events: none;
-      filter: blur(2px);
-      animation: drift 14s ease-in-out infinite alternate;
-    }
-
-    #splash::before {
-      width: 520px;
-      height: 520px;
-      right: -160px;
-      top: -200px;
-      background: radial-gradient(
-        closest-side,
-        rgba(251, 191, 36, 0.55),
-        transparent 70%
-      );
-    }
-
-    #splash::after {
-      width: 460px;
-      height: 460px;
-      left: -140px;
-      bottom: -220px;
-      animation-duration: 19s;
-      animation-direction: alternate-reverse;
-      background: radial-gradient(
-        closest-side,
-        rgba(251, 113, 133, 0.42),
-        transparent 70%
-      );
-    }
-
-    @keyframes drift {
-      from {
-        transform: translate3d(0, 0, 0) scale(1);
-      }
-      to {
-        transform: translate3d(-40px, 34px, 0) scale(1.15);
-      }
-    }
-
-    .badge {
-      position: relative;
-      z-index: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 6px;
-      padding: 0 20px;
-      text-align: center;
-    }
-
-    .mark {
-      font-size: clamp(36px, 8vw, 52px);
-      font-weight: 800;
-      letter-spacing: -0.05em;
-      line-height: 1;
-      background: linear-gradient(92deg, #fff, var(--t));
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-    }
-
-    .tag {
-      font-size: 13px;
-      font-weight: 600;
-      letter-spacing: 0.02em;
-      opacity: 0.85;
-    }
-
-    .pills {
-      position: relative;
-      z-index: 1;
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      justify-content: center;
-      padding: 0 24px;
-    }
-
-    .pills span {
-      font-size: 11.5px;
-      font-weight: 700;
-      padding: 5px 12px;
-      border-radius: 99px;
-      background: rgba(255, 255, 255, 0.15);
-      border: 1px solid rgba(255, 255, 255, 0.22);
-      opacity: 0;
-      transform: translateY(8px);
-      animation: pop 0.6s ease forwards;
-    }
-
-    .pills span:nth-child(2) {
-      animation-delay: 0.12s;
-    }
-
-    .pills span:nth-child(3) {
-      animation-delay: 0.24s;
-    }
-
-    .pills span:nth-child(4) {
-      animation-delay: 0.36s;
-    }
-
-    @keyframes pop {
-      to {
-        opacity: 1;
-        transform: none;
-      }
-    }
-
-    .loadbar {
-      position: relative;
-      z-index: 1;
-      width: 168px;
-      height: 4px;
-      border-radius: 4px;
-      background: rgba(255, 255, 255, 0.22);
-      overflow: hidden;
-    }
-
-    .loadbar i {
-      position: absolute;
-      inset: 0 auto 0 0;
-      width: 40%;
-      border-radius: 4px;
-      background: linear-gradient(
-        90deg,
-        transparent,
-        var(--t),
-        transparent
-      );
-      animation: slide 1.3s ease-in-out infinite;
-    }
-
-    @keyframes slide {
-      from {
-        transform: translateX(-110%);
-      }
-      to {
-        transform: translateX(300%);
-      }
-    }
-
-    .sub {
-      position: relative;
-      z-index: 1;
-      font-size: 12.5px;
-      opacity: 0.85;
-      font-weight: 500;
-      min-height: 18px;
-      text-align: center;
-      padding: 0 24px;
-    }
-
-    /* Recovery buttons */
-    #fallback {
-      position: fixed;
-      left: 0;
-      right: 0;
-      bottom: calc(30px + env(safe-area-inset-bottom, 0px));
-      z-index: 10;
-      display: none;
-      justify-content: center;
-      gap: 10px;
-      flex-wrap: wrap;
-      padding: 0 16px;
-    }
-
-    #fallback.on {
-      display: flex;
-    }
-
-    #fallback a,
-    #fallback button {
-      font: inherit;
-      font-size: 13px;
-      font-weight: 700;
-      padding: 11px 20px;
-      border-radius: 999px;
-      text-decoration: none;
-      cursor: pointer;
-      border: 0;
-      box-shadow: 0 12px 30px -12px rgba(0, 0, 0, 0.6);
-    }
-
-    #fallback a {
-      background: #fff;
-      color: #134e4a;
-    }
-
-    #fallback button {
-      background: rgba(255, 255, 255, 0.18);
-      color: #fff;
-      border: 1px solid rgba(255, 255, 255, 0.4);
-      backdrop-filter: blur(6px);
-    }
-
-    noscript {
-      position: fixed;
-      inset: 0;
-      z-index: 20;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--a);
-      color: #fff;
-      font-size: 15px;
-      font-weight: 600;
-      padding: 24px;
-      text-align: center;
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      *,
-      *::before,
-      *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-      }
-    }
-  </style>
+  /* ---------- slow / failed ---------- */
+  #fallback{position:fixed;left:0;right:0;bottom:calc(30px + env(safe-area-inset-bottom,0px));z-index:10;
+    display:none;justify-content:center;gap:10px;flex-wrap:wrap;padding:0 16px}
+  #fallback a,#fallback button{font:inherit;font-size:13px;font-weight:700;padding:11px 20px;border-radius:999px;
+    text-decoration:none;cursor:pointer;border:0;box-shadow:0 12px 30px -12px rgba(0,0,0,.6)}
+  #fallback a{background:#fff;color:#134e4a}
+  #fallback button{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.4);backdrop-filter:blur(6px)}
+  #fallback.on{display:flex}
+  noscript{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;
+    background:#0f766e;color:#fff;font-size:15px;font-weight:600;padding:24px;text-align:center}
+  @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important}}
+</style>
 </head>
-
 <body>
-  <div id="splash" role="status" aria-live="polite">
-    <div class="badge">
-      <div class="mark">Team Board</div>
-      <div class="tag">Shared tasks · Leave · Rotations</div>
-    </div>
 
-    <div class="pills">
-      <span>Daily</span>
-      <span>Monthly</span>
-      <span>Yearly</span>
-      <span>Team roster</span>
-    </div>
-
-    <div class="loadbar"><i></i></div>
-    <div class="sub" id="splashMsg">Loading Team Board…</div>
+<div id="splash" role="status" aria-live="polite">
+  <div class="badge">
+    <div class="mark">Team Board</div>
+    <div class="tag">Shared tasks &middot; Leave &middot; Rotations</div>
   </div>
+  <div class="pills"><span>Daily</span><span>Monthly</span><span>Yearly</span><span>Team roster</span></div>
+  <div class="loadbar"><i></i></div>
+  <div class="sub" id="splashMsg">Loading Team Board…</div>
+</div>
 
-  <iframe
-    id="frame"
-    title="Team Board"
-    allow="clipboard-write; fullscreen"
-    referrerpolicy="strict-origin-when-cross-origin">
-  </iframe>
+<iframe id="frame" title="Team Board"
+        allow="clipboard-write; fullscreen"
+        referrerpolicy="no-referrer-when-downgrade"></iframe>
 
-  <div id="fallback">
-    <button id="retry" type="button">Retry</button>
-    <a
-      id="openTab"
-      href="#"
-      target="_blank"
-      rel="noopener noreferrer">
-      Open in browser instead
-    </a>
-  </div>
+<div id="fallback">
+  <button id="retry" type="button">Retry</button>
+  <a id="openTab" href="#" target="_blank" rel="noopener">Open in browser instead</a>
+</div>
 
-  <noscript>JavaScript must be enabled to use Team Board.</noscript>
+<noscript>JavaScript must be enabled to use Team Board</noscript>
 
-  <script>
-    "use strict";
+<script>
+  /* ====== paste your Apps Script /exec link here ====== */
+  var APP_URL = "https://script.google.com/macros/s/AKfycbxVPSPEWUTY9rlPKwUCbtLKz-d7zGpu9-YltJo9g_XOjE8oCfcntv5tD4t0ygOP3_v4/exec";
+  /* ==================================================== */
 
-    /*
-     * Google Apps Script Web App URL
-     * Use the URL copied from:
-     * Deploy > Manage deployments > Web app
-     *
-     * This is the full URL format for the deployment ID
-     * supplied in the original code.
-     */
-    var APP_URL =
-      "https://script.google.com/macros/s/AKfycbxVPSPEWUTY9rlPKwUCbtLKz-d7zGpu9-YltJo9g_XOjE8oCfcntv5tD4t0ygOP3_v4/exec";
+  var frame    = document.getElementById('frame'),
+      splash   = document.getElementById('splash'),
+      msg      = document.getElementById('splashMsg'),
+      fallback = document.getElementById('fallback'),
+      openTab  = document.getElementById('openTab'),
+      loaded   = false, timers = [];
 
-    var frame = document.getElementById("frame");
-    var splash = document.getElementById("splash");
-    var msg = document.getElementById("splashMsg");
-    var fallback = document.getElementById("fallback");
-    var openTab = document.getElementById("openTab");
+  openTab.href = APP_URL;
 
-    var loaded = false;
-    var timers = [];
-    var retryCount = 0;
+  function clearTimers(){ timers.forEach(clearTimeout); timers = []; }
 
-    openTab.href = APP_URL;
+  function start(){
+    clearTimers(); loaded = false;
+    fallback.classList.remove('on');
+    splash.classList.remove('gone');
+    msg.textContent = 'Loading Team Board…';
+    /* cache-buster only on "Retry", so a fresh Deploy is picked up */
+    frame.src = start.n ? APP_URL + (APP_URL.indexOf('?') < 0 ? '?' : '&') + 'r=' + Date.now() : APP_URL;
+    start.n = (start.n || 0) + 1;
+    timers.push(setTimeout(function(){ if(!loaded) msg.textContent = 'Taking longer than usual — Apps Script is starting up…'; }, 6000));
+    timers.push(setTimeout(function(){
+      if(loaded) return;
+      splash.classList.add('gone');          /* better to show a half-loaded page than a green screen forever */
+      fallback.classList.add('on');
+    }, 14000));
+  }
 
-    function clearTimers() {
-      timers.forEach(function (timer) {
-        clearTimeout(timer);
-      });
-      timers = [];
+  frame.addEventListener('load', function(){
+    /* the first (empty) iframe fires load too — ignore it */
+    if(!frame.getAttribute('src')) return;
+    loaded = true; clearTimers();
+    fallback.classList.remove('on');
+    setTimeout(function(){ splash.classList.add('gone'); }, 350);
+  });
+  document.getElementById('retry').addEventListener('click', start);
+  window.addEventListener('offline', function(){ if(loaded) return; msg.textContent = 'No internet connection'; });
+  window.addEventListener('online',  function(){ if(!loaded) start(); });
+  start();
+
+  /* ==================================================================
+     Storage bridge
+     Safari does not let a page inside an iframe keep data on the device.
+     This outermost page keeps it instead and hands it back when asked.
+     Protocol (same as Index.html): {__tb:1, id, op: get | set | clear | reload, key, value}
+     ================================================================== */
+  var KEYS = { tb_token:1, tb_theme:1 };
+  window.addEventListener('message', function (e) {
+    var d = e.data;
+    if (!d || d.__tb !== 1 || !d.op) return;
+    var src = e.source;
+    function reply(payload) {
+      payload.__tb = 1; payload.id = d.id;
+      try { src.postMessage(payload, '*'); } catch (err) {}
     }
-
-    function start() {
-      clearTimers();
-      loaded = false;
-
-      fallback.classList.remove("on");
-      splash.classList.remove("gone");
-      msg.textContent = "Loading Team Board…";
-
-      var url = APP_URL;
-
-      if (retryCount > 0) {
-        url += (url.indexOf("?") === -1 ? "?" : "&") +
-          "r=" + Date.now();
-      }
-
-      retryCount += 1;
-      frame.src = url;
-
-      timers.push(setTimeout(function () {
-        if (!loaded) {
-          msg.textContent =
-            "Taking longer than usual — Apps Script is starting up…";
-        }
-      }, 6000));
-
-      timers.push(setTimeout(function () {
-        if (loaded) return;
-
-        splash.classList.add("gone");
-        fallback.classList.add("on");
-      }, 14000));
-    }
-
-    frame.addEventListener("load", function () {
-      /*
-       * An iframe load event does not guarantee that the
-       * embedded application itself has loaded successfully.
-       * Cross-origin pages cannot be inspected here.
-       */
-      if (!frame.getAttribute("src")) return;
-
-      loaded = true;
-      clearTimers();
-      fallback.classList.remove("on");
-
-      setTimeout(function () {
-        splash.classList.add("gone");
-      }, 350);
-    });
-
-    document.getElementById("retry").addEventListener(
-      "click",
-      start
-    );
-
-    window.addEventListener("offline", function () {
-      msg.textContent = "No internet connection";
-      splash.classList.remove("gone");
-      fallback.classList.add("on");
-    });
-
-    window.addEventListener("online", function () {
-      if (!loaded) start();
-    });
-
-    start();
-
-    /*
-     * Storage bridge
-     *
-     * Supported operations:
-     * { __tb: 1, id, op: "get" | "set" | "clear" | "reload",
-     *   key, value }
-     *
-     * Only the keys listed below can be accessed.
-     */
-    var KEYS = {
-      tb_token: true,
-      tb_theme: true
-    };
-
-    window.addEventListener("message", function (event) {
-      var data = event.data;
-
-      if (!data || data.__tb !== 1 || !data.op) return;
-
-      var source = event.source;
-
-      function reply(payload) {
-        payload.__tb = 1;
-        payload.id = data.id;
-
-        try {
-          source.postMessage(payload, "*");
-        } catch (error) {
-          // Ignore replies to a closed or unavailable frame.
-        }
-      }
-
-      try {
-        if (data.op === "reload") {
-          reply({ ok: true });
-          window.location.reload();
-          return;
-        }
-
-        if (!KEYS[data.key]) {
-          reply({ ok: false, error: "Unsupported key" });
-          return;
-        }
-
-        if (data.op === "get") {
-          reply({
-            value: localStorage.getItem(data.key) || ""
-          });
-        } else if (data.op === "set") {
-          localStorage.setItem(
-            data.key,
-            data.value == null ? "" : String(data.value)
-          );
-          reply({ ok: true });
-        } else if (data.op === "clear") {
-          localStorage.removeItem(data.key);
-          reply({ ok: true });
-        } else {
-          reply({ ok: false, error: "Unsupported operation" });
-        }
-      } catch (error) {
-        reply({ ok: false, error: String(error) });
-      }
-    }, false);
-  </script>
+    try {
+      if (d.op === 'reload') { reply({ ok:true }); location.reload(); return; }
+      if (!KEYS[d.key]) { reply({ ok:false }); return; }
+      if (d.op === 'get')         reply({ value: localStorage.getItem(d.key) || '' });
+      else if (d.op === 'set')    { localStorage.setItem(d.key, d.value || ''); reply({ ok:true }); }
+      else if (d.op === 'clear')  { localStorage.removeItem(d.key); reply({ ok:true }); }
+      else reply({ ok:false });
+    } catch (err) { reply({ error:String(err) }); }
+  }, false);
+</script>
 </body>
 </html>
-```
