@@ -2,14 +2,14 @@
   "name": "Team Board",
   "short_name": "Team Board",
   "description": "Shared daily, monthly and yearly tasks with leave and site rotations for the team",
-  "start_url": "./Wrapper_index.html",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
   "background_color": "#0f766e",
   "theme_color": "#0f766e",
   "icons": [
-    { "src": "teamboard-icon.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "teamboard-icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+    { "src": "teamboard-icon.png", "sizes": "1254x1254", "type": "image/png", "purpose": "any" },
+    { "src": "teamboard-icon.png", "sizes": "any", "type": "image/png", "purpose": "any" }
   ]
 }
